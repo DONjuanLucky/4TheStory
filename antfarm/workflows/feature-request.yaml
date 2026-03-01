@@ -1,0 +1,70 @@
+name: feature-request
+description: "Drop in a feature request, get back a tested PR with code review"
+version: "1.0.0"
+
+agents:
+  planner:
+    model: anthropic/claude-opus-4-6
+    role: "Decompose the feature request into atomic user stories"
+    timeout: 300
+
+  developer:
+    model: anthropic/claude-sonnet-4-5
+    role: "Implement each user story in isolation with clean code"
+    timeout: 600
+
+  verifier:
+    model: anthropic/claude-sonnet-4-5
+    role: "Validate implementation matches the spec exactly"
+    timeout: 300
+
+  tester:
+    model: anthropic/claude-sonnet-4-5
+    role: "Write and run comprehensive test suites"
+    timeout: 300
+
+  reviewer:
+    model: anthropic/claude-opus-4-6
+    role: "Final code review — quality, security, style"
+    timeout: 300
+
+steps:
+  - name: plan
+    agent: planner
+    action: "Analyze the feature request and create atomic user stories"
+    output: stories.json
+
+  - name: setup
+    agent: developer
+    action: "Create feature branch and initial project structure"
+    output: branch-info.json
+
+  - name: implement
+    agent: developer
+    action: "Implement each story from the plan"
+    input: stories.json
+    retry: 2
+
+  - name: verify
+    agent: verifier
+    action: "Check implementation against each story's acceptance criteria"
+    retry: 1
+
+  - name: test
+    agent: tester
+    action: "Write and run tests for all implemented stories"
+    retry: 2
+
+  - name: PR
+    agent: developer
+    action: "Create pull request with description and changelog"
+
+  - name: review
+    agent: reviewer
+    action: "Review PR for quality, security, and style issues"
+
+config:
+  max_retries: 3
+  step_timeout: 600
+  notification_channel: telegram
+  auto_retry_on_failure: true

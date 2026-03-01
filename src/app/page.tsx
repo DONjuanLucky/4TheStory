@@ -1,101 +1,150 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { PageHeader } from "@/components/PageHeader";
+import { HelpPanel, HelpTooltip } from "@/components/HelpPanel";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import {
+  Activity,
+  Users,
+  Sparkles,
+  Bot,
+  Clock,
+  ArrowRight,
+  Zap,
+  Shield,
+} from "lucide-react";
+import Link from "next/link";
+
+const metrics = [
+  { label: "Active Agents", value: "3", change: "+1 today", icon: Bot, color: "text-brand-600", bg: "bg-brand-50" },
+  { label: "CRM Contacts", value: "1,174", change: "+12 this week", icon: Users, color: "text-emerald-600", bg: "bg-emerald-50" },
+  { label: "Skills Installed", value: "22", change: "2 in preview", icon: Sparkles, color: "text-amber-600", bg: "bg-amber-50" },
+  { label: "Cron Jobs", value: "8", change: "All healthy", icon: Clock, color: "text-blue-600", bg: "bg-blue-50" },
+];
+
+const recentActivity = [
+  { time: "2 min ago", action: "CRM daily sync completed", detail: "12 new contacts discovered, 3 auto-approved", type: "success" as const },
+  { time: "15 min ago", action: "Antfarm workflow: feature-request", detail: "Step 4/7 — verify phase running", type: "active" as const },
+  { time: "1 hour ago", action: "Fathom meeting processed", detail: "\"Product Roadmap Review\" → 4 action items created", type: "success" as const },
+  { time: "2 hours ago", action: "Gmail draft proposed", detail: "Reply to mark@example.com — awaiting approval", type: "pending" as const },
+  { time: "3 hours ago", action: "Weekly YouTube analysis", detail: "Competitor report generated for 5 channels", type: "success" as const },
+  { time: "6 hours ago", action: "Memory indexed", detail: "348 embeddings updated in knowledge base", type: "success" as const },
+];
+
+const quickActions = [
+  { label: "Query CRM", href: "/crm", icon: Users, description: "Search contacts with natural language" },
+  { label: "Run Workflow", href: "/subagents", icon: Bot, description: "Start an Antfarm multi-agent task" },
+  { label: "Install Skill", href: "/skills", icon: Sparkles, description: "Browse and install from ClawHub" },
+  { label: "View Cron Logs", href: "/cron", icon: Clock, description: "Check scheduled job history" },
+];
+
+export default function Dashboard() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <>
+      <PageHeader
+        title="Dashboard"
+        description="System overview and quick actions"
+        actions={<StatusBadge status="active" label="Gateway Online" />}
+      />
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      <HelpPanel section="dashboard" />
+
+      {/* Metric Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {metrics.map((metric) => {
+          const Icon = metric.icon;
+          return (
+            <div key={metric.label} className="bg-white rounded-xl border border-surface-200 p-5 hover:shadow-md transition-smooth">
+              <div className="flex items-center justify-between mb-3">
+                <div className={`w-10 h-10 ${metric.bg} rounded-lg flex items-center justify-center`}>
+                  <Icon className={`w-5 h-5 ${metric.color}`} />
+                </div>
+                <HelpTooltip text={`Current count of ${metric.label.toLowerCase()} in your workspace`} />
+              </div>
+              <div className="text-2xl font-bold text-surface-900">{metric.value}</div>
+              <div className="text-xs text-surface-500 mt-1">{metric.change}</div>
+              <div className="text-xs text-surface-400 mt-0.5">{metric.label}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Activity Feed */}
+        <div className="lg:col-span-2 bg-white rounded-xl border border-surface-200">
+          <div className="px-5 py-4 border-b border-surface-100 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Activity className="w-4 h-4 text-surface-500" />
+              <h2 className="text-sm font-semibold text-surface-800">Recent Activity</h2>
+              <HelpTooltip text="Shows the last 24 hours of agent actions, cron runs, and system events" />
+            </div>
+            <span className="text-xs text-surface-400">Last 24 hours</span>
+          </div>
+          <div className="divide-y divide-surface-100">
+            {recentActivity.map((item, i) => (
+              <div key={i} className="px-5 py-3.5 flex items-start gap-3 hover:bg-surface-50 transition-smooth">
+                <StatusBadge status={item.type} label="" showDot={true} className="mt-1 px-0 py-0 border-0 bg-transparent" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-surface-800">{item.action}</div>
+                  <div className="text-xs text-surface-500 mt-0.5">{item.detail}</div>
+                </div>
+                <span className="text-xs text-surface-400 whitespace-nowrap">{item.time}</span>
+              </div>
+            ))}
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+        {/* Quick Actions + System Health */}
+        <div className="space-y-6">
+          <div className="bg-white rounded-xl border border-surface-200">
+            <div className="px-5 py-4 border-b border-surface-100 flex items-center gap-2">
+              <Zap className="w-4 h-4 text-accent-500" />
+              <h2 className="text-sm font-semibold text-surface-800">Quick Actions</h2>
+            </div>
+            <div className="p-3 space-y-1">
+              {quickActions.map((action) => {
+                const Icon = action.icon;
+                return (
+                  <Link key={action.label} href={action.href} className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-50 transition-smooth group">
+                    <Icon className="w-4 h-4 text-surface-400 group-hover:text-brand-500" />
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-surface-700 group-hover:text-surface-900">{action.label}</div>
+                      <div className="text-xs text-surface-400">{action.description}</div>
+                    </div>
+                    <ArrowRight className="w-3.5 h-3.5 text-surface-300 group-hover:text-brand-400" />
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-surface-200">
+            <div className="px-5 py-4 border-b border-surface-100 flex items-center gap-2">
+              <Shield className="w-4 h-4 text-emerald-500" />
+              <h2 className="text-sm font-semibold text-surface-800">System Health</h2>
+              <HelpTooltip text="Real-time status of gateway, agents, and connected services" />
+            </div>
+            <div className="p-4 space-y-3">
+              {[
+                { name: "Gateway", status: "active" as const, detail: "Port 18789 · 14h uptime" },
+                { name: "Primary Model", status: "active" as const, detail: "Opus 4.6 · 200K context" },
+                { name: "Telegram", status: "active" as const, detail: "Connected · DM pairing" },
+                { name: "Slack", status: "active" as const, detail: "Socket mode · 3 channels" },
+                { name: "Memory Index", status: "active" as const, detail: "768-dim · 2,340 embeddings" },
+                { name: "Antfarm", status: "active" as const, detail: "v0.5.1 · 2 workflows ready" },
+              ].map((item) => (
+                <div key={item.name} className="flex items-center justify-between">
+                  <div>
+                    <div className="text-sm font-medium text-surface-700">{item.name}</div>
+                    <div className="text-xs text-surface-400">{item.detail}</div>
+                  </div>
+                  <StatusBadge status={item.status} label="OK" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }

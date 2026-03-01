@@ -1,0 +1,66 @@
+name: security-audit
+description: "Scan repo for vulnerabilities, rank by severity, patch and re-audit"
+version: "1.0.0"
+
+agents:
+  scanner:
+    model: anthropic/claude-opus-4-6
+    role: "Scan codebase for security vulnerabilities and misconfigurations"
+    timeout: 600
+
+  developer:
+    model: anthropic/claude-sonnet-4-5
+    role: "Implement security patches for identified vulnerabilities"
+    timeout: 600
+
+  verifier:
+    model: anthropic/claude-sonnet-4-5
+    role: "Verify patches don't introduce regressions"
+    timeout: 300
+
+  tester:
+    model: anthropic/claude-sonnet-4-5
+    role: "Write regression tests for each fix"
+    timeout: 300
+
+steps:
+  - name: scan
+    agent: scanner
+    action: "Full security scan of codebase — deps, code patterns, configs"
+    output: vulnerabilities.json
+
+  - name: prioritize
+    agent: scanner
+    action: "Rank vulnerabilities by severity and exploitability"
+    input: vulnerabilities.json
+    output: prioritized.json
+
+  - name: setup
+    agent: developer
+    action: "Create security fix branch"
+
+  - name: fix
+    agent: developer
+    action: "Patch each vulnerability in priority order"
+    input: prioritized.json
+    retry: 2
+
+  - name: verify
+    agent: verifier
+    action: "Re-audit after all fixes are applied"
+    retry: 1
+
+  - name: test
+    agent: tester
+    action: "Run regression tests on patched code"
+    retry: 2
+
+  - name: PR
+    agent: developer
+    action: "Create security fix PR with vulnerability details"
+
+config:
+  max_retries: 3
+  step_timeout: 600
+  notification_channel: telegram
+  auto_retry_on_failure: true
